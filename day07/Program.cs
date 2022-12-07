@@ -2,6 +2,7 @@
 using System.Linq;
 using System.IO;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace day07
 {
@@ -25,6 +26,8 @@ namespace day07
     }
     class Program
     {
+        const int MAX_SIZE = 70000000;
+        const int REQ_SIZE = 30000000;
         static void Main(string[] args)
         {
             var lines = File.ReadAllLines("input.txt");
@@ -33,19 +36,18 @@ namespace day07
 
             foreach(var line in lines.Skip(1))
             {
-                if (line.StartsWith("$") && line.Contains("ls"))
+                var parts = line.Split(" ");
+                if (parts[0] == "$" && parts[1] == "ls")
                 {
                     continue;
                 }
-                else if (line.StartsWith("$") && line.Contains("cd"))
+                else if (parts[0] == "$" && parts[1] == "cd")
                 {
-                    var parts = line.Split(" ");
                     if (parts.Last() == "..") current = current.Parent;
                     else current = current.Children.Single(c => c.Name == parts.Last());
                 }
                 else
                 {
-                    var parts = line.Split(" ");
                     int size;
                     if (int.TryParse(parts[0], out size))
                     {
@@ -58,7 +60,16 @@ namespace day07
                 }
             }
 
-            Console.WriteLine(SumOfSums(root));
+            int avail = MAX_SIZE - root.Size();
+            int needed = REQ_SIZE - avail;
+
+            //Console.WriteLine(SumOfSums(root));
+            Console.WriteLine(Flatten(root).Where(r => r.Size() > needed).OrderBy(r => r.Size()).First().Size());
+        }
+
+        static List<Dir> Flatten(Dir root)
+        {
+            return root.Children.Union(root.Children.SelectMany(c => Flatten(c))).OrderBy(c => c.Size()).ToList();
         }
 
         static int SumOfSums(Dir root)
