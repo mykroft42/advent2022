@@ -17,6 +17,11 @@ namespace day07
         {
             return Files.Select(f => f.size).Sum() + Children.Select(c => c.Size()).Sum();
         }
+
+        public override string ToString()
+        {
+            return $"{{Name: {Name}}}";
+        }
     }
     class Program
     {
@@ -53,7 +58,12 @@ namespace day07
                 }
             }
 
-            
+            Console.WriteLine(SumOfSums(root));
+        }
+
+        static int SumOfSums(Dir root)
+        {
+            return root.Children.Where(c => c.Size() <= 100000).Select(c => c.Size()).Sum() + root.Children.Select(c => SumOfSums(c)).Sum();
         }
     }
 }
