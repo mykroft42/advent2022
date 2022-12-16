@@ -5,11 +5,19 @@ using System.Collections.Generic;
 
 namespace day13
 {
-    class Item 
+    class Item : IComparable<Item>
     {
         public int? Value{get;set;}
         public List<Item> Items { get; set; } = new List<Item>();
         public Item Parent { get; set; }
+        public string StringRep { get; set; }
+
+        public int CompareTo(Item other)
+        {
+            bool? result = Program.Compare(this, other);
+            if (result == true) return -1;
+            return 1;
+        }
     }
     public enum State
     {
@@ -26,22 +34,32 @@ namespace day13
 
             int j = 0;
             List<int> positives = new List<int>();
+            List<Item> items = new List<Item>()
+            {
+                ParseItem("[[2]]"),
+                ParseItem("[[6]]"),
+            };
             for(int i = 0; i < lines.Length; i++)
             {
                 j++;
                 Item item1 = ParseItem(lines[i++]);
                 Item item2 = ParseItem(lines[i++]);
+                items.Add(item1);
+                items.Add(item2);
 
                 var result = Compare(item1, item2);
                 if (result == true) positives.Add(j);
             }
             positives.ForEach(Console.WriteLine);
             Console.WriteLine(positives.Sum());
+
+            items = items.OrderBy(i => i).ToList();
+            Console.WriteLine((items.IndexOf(items.Single(i => i.StringRep == "[[2]]")) + 1) * (items.IndexOf(items.Single(i => i.StringRep == "[[6]]")) + 1));
         }
 
         static Item ParseItem(string input)
         {
-            Item current = new Item();
+            Item current = new Item() { StringRep = input };
             current.Parent = current;
 
             State state = State.Open;
@@ -108,7 +126,7 @@ namespace day13
             return current;
         }
 
-        static bool? Compare(Item left, Item right)
+        public static bool? Compare(Item left, Item right)
         {
             if (left.Value.HasValue && right.Value.HasValue)
             {
@@ -120,6 +138,7 @@ namespace day13
             if (left.Value.HasValue) left = new Item { Items = new List<Item> { new Item { Value = left.Value } } };
             else if (right.Value.HasValue) right = new Item { Items = new List<Item> { new Item { Value = right.Value } } };
 
+            int compares = 0;
             for (int i = 0; i < left.Items.Count; i++)
             {
                 if (i >= right.Items.Count) return false;
@@ -128,6 +147,8 @@ namespace day13
                 if (result == true) return true;
                 else if (result == false) return false;
             }
+
+            if (left.Items.Count == right.Items.Count) return null;
 
             return true;
         }
